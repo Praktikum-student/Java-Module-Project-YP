@@ -1,13 +1,21 @@
-import java.util.Scanner ;
+import java.util.Scanner;
 
 // 1. Класс Автомобиль
 class Car {
-    String name;
-    int speed;
+    private final String name;
+    private final int speed;
 
     public Car(String name, int speed) {
         this.name = name;
         this.speed = speed;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getSpeed() {
+        return speed;
     }
 
     int getDistance() {
@@ -17,79 +25,93 @@ class Car {
 
 // 2. Класс Гонка
 class Race {
-    Car[] cars;
-    Car leader;
+    private Car winner;
 
-    public Race(Car[] cars) {
-        this.cars = cars;
-        findLeader();
+    public Car getWinner() {
+        return winner;
     }
 
-    void findLeader() {
-        leader = cars[0];
-
-        for (int i = 1; i < cars.length; i++) {
-            if (cars[i].getDistance() > leader.getDistance()) {
-                leader = cars[i];
-            }
+    void updateWinner(Car currentCar) {
+        if (winner == null || currentCar.getDistance() > winner.getDistance()) {
+            winner = currentCar;
         }
     }
 
     void showWinner() {
-        System.out.println("Самая быстрая машина: " + leader.name);
+        if (winner != null) {
+            System.out.println("Самая быстрая машина: " + winner.getName());
+        } else {
+            System.out.println("Нет данных об автомобилях");
+        }
     }
 }
 
 // 3. Главный класс
 public class Main {
+    private static final int MIN_SPEED = 1;
+    private static final int MAX_SPEED = 250;
+    private static final int CAR_COUNT = 3;
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("=== Гонка автомобилей ===");
-        System.out.println("Введите данные для 3 автомобилей\n");
+        System.out.println("Введите данные для " + CAR_COUNT + " автомобилей\n");
 
-        Car[] cars = new Car[3];
+        Race race = new Race();
 
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < CAR_COUNT; i++) {
             System.out.println("Автомобиль №" + (i + 1) + ":");
 
-            System.out.print("Введите название: ");
-            String name = scanner.nextLine();
+            String name = readNonEmptyString(scanner, "Введите название: ");
 
-            while (name.isEmpty()) {
-                System.out.println("Ошибка: название не может быть пустым!");
-                System.out.print("Введите название: ");
-                name = scanner.nextLine();
-            }
+            int speed = readValidSpeed(scanner);
 
-            int speed = 0;
-            boolean correctSpeed = false;
+            Car car = new Car(name, speed);
 
-            while (!correctSpeed) {
-                System.out.print("Введите скорость (1-250 км/ч): ");
+            race.updateWinner(car);
 
-                if (scanner.hasNextInt()) {
-                    speed = scanner.nextInt();
-                    scanner.nextLine();
-
-                    if (speed > 0 && speed <= 250) {
-                        correctSpeed = true;
-                    } else {
-                        System.out.println("Ошибка: скорость должна быть от 1 до 250!");
-                    }
-                } else {
-                    System.out.println("Ошибка: введите целое число!");
-                    scanner.nextLine();
-                }
-            }
-
-            cars[i] = new Car(name, speed);
             System.out.println();
         }
 
-        Race race = new Race(cars);
         race.showWinner();
 
         scanner.close();
+    }
+
+    private static String readNonEmptyString(Scanner scanner, String prompt) {
+        String input;
+
+        while (true) {
+            System.out.print(prompt);
+            input = scanner.nextLine().trim();
+
+            if (!input.isEmpty()) {
+                return input;
+            }
+
+            System.out.println("Ошибка: название не может быть пустым!");
+        }
+    }
+
+
+    private static int readValidSpeed(Scanner scanner) {
+        while (true) {
+            System.out.print("Введите скорость (" + MIN_SPEED + "-" + MAX_SPEED + " км/ч): ");
+
+            if (scanner.hasNextInt()) {
+                int speed = scanner.nextInt();
+                scanner.nextLine();
+
+                if (speed >= MIN_SPEED && speed <= MAX_SPEED) {
+                    return speed;
+                } else {
+                    System.out.println("Ошибка: скорость должна быть от " + MIN_SPEED + " до " + MAX_SPEED + "!");
+                }
+            } else {
+                System.out.println("Ошибка: введите целое число!");
+                scanner.nextLine();
+            }
+        }
     }
 }
